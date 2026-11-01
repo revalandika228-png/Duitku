@@ -67,8 +67,27 @@ function restore(file){const r=new FileReader();r.onload=()=>{try{const x=JSON.p
  const input=$(id);
  input.addEventListener('input',()=>{const start=input.selectionStart, before=input.value.slice(0,start);const digitsBefore=before.replace(/[^\d]/g,'').length;input.value=formatInput(input.value);let pos=0,count=0;while(pos<input.value.length&&count<digitsBefore){if(/\d/.test(input.value[pos]))count++;pos++;}input.setSelectionRange(pos,pos);});
 });
-// Tombol +/- mengubah nominal sebesar Rp1.000 setiap sentuhan.
-document.querySelectorAll('.stepper button').forEach(btn=>btn.addEventListener('click',()=>{const input=$(btn.dataset.target);const next=Math.max(0,parse(input.value)+Number(btn.dataset.step));input.value=formatInput(next);input.dispatchEvent(new Event('input',{bubbles:true}));}));
+// Tombol + dan − berfungsi sebagai kalkulator per kolom.
+// Contoh: ketik 7.000, tekan +, ketik 10.000, tekan + lagi => 17.000.
+const calculations={};
+document.querySelectorAll('.stepper button').forEach(btn=>btn.addEventListener('click',()=>{
+ const id=btn.dataset.target,input=$(id),hint=$('calc-'+id),op=btn.dataset.op,current=parse(input.value);
+ const pending=calculations[id];
+ if(!pending){
+  if(!input.value.trim()){toast('Masukkan nominal terlebih dahulu');input.focus();return;}
+  calculations[id]={value:current,op};
+  hint.textContent=formatInput(current)+(op==='add'?' +':' −')+' …';
+  input.value='';input.focus();return;
+ }
+ if(!input.value.trim()){
+  // Jika operator ditekan lagi sebelum angka kedua diisi, izinkan mengganti operator.
+  pending.op=op;hint.textContent=formatInput(pending.value)+(op==='add'?' +':' −')+' …';input.focus();return;
+ }
+ const result=op==='add'?pending.value+current:pending.value-current;
+ input.value=formatInput(Math.max(0,result));
+ delete calculations[id];hint.textContent='Hasil: '+formatInput(Math.max(0,result));
+ input.dispatchEvent(new Event('change',{bubbles:true}));input.focus();
+}));
 // Musik otomatis diputar dan mengulang terus saat aplikasi dibuka.
 // Tombol Off menghentikan musik untuk sesi ini; saat aplikasi dibuka lagi musik aktif kembali.
 const music=$('appMusic');
