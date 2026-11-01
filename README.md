@@ -1,4 +1,4 @@
-# Duitku — Daily Money Tracker
+# Duite Gatut Wijayanto — Daily Money Tracker
 
 Aplikasi catatan posisi keuangan harian, bukan pencatat transaksi satu per satu.
 
@@ -27,3 +27,6 @@ Satu catatan per tanggal. Menyimpan ulang pada tanggal yang sama akan memperbaru
 
 ## Catatan
 APK debug untuk instalasi pribadi, bukan rilis Play Store.
+
+## Nama dan ikon custom
+Nama launcher dan judul aplikasi: Duite Gatut Wijayanto. Ikon launcher memakai gambar custom yang disediakan pengguna, di beberapa resolusi Android.
