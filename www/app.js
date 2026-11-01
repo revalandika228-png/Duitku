@@ -2,6 +2,7 @@ const KEY='duitku_daily_v1';
 const today=()=>new Date().toLocaleDateString('en-CA');
 const money=n=>'Rp'+Math.round(Number(n)||0).toLocaleString('id-ID');
 const parse=v=>{let n=Number(String(v).replace(/[^\d]/g,''));return Number.isFinite(n)?n:0};
+const formatInput=v=>parse(v).toLocaleString('id-ID');
 let db=JSON.parse(localStorage.getItem(KEY)||'null')||{snapshots:[]};
 const $=id=>document.getElementById(id);
 function net(s){return s.bank+s.cash+s.receivable-s.debt}
@@ -13,7 +14,7 @@ function previous(){return sorted().filter(s=>s.date<today()).slice(-1)[0]}
 function updateUI(){
  const t=current(),p=previous();
  $('todayLabel').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
- ['bank','cash','receivable','debt'].forEach(k=>$(k).value=t?String(t[k]):'');
+ ['bank','cash','receivable','debt'].forEach(k=>$(k).value=t?formatInput(t[k]):'');
  const value=t?net(t):0;
  $('netWorth').textContent=money(value);
  const delta=t&&p?value-net(p):null;
@@ -61,6 +62,27 @@ function renderMonthly(){
 
 function backup(){const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='duitku-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href);toast('File backup dibuat')}
 function restore(file){const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x.snapshots)||x.snapshots.some(s=>!s.date||!['bank','cash','receivable','debt'].every(k=>Number.isFinite(Number(s[k])))))throw Error();db=x;localStorage.setItem(KEY,JSON.stringify(db));updateUI();toast('Backup berhasil dipulihkan')}catch(e){alert('File backup tidak valid')}};r.readAsText(file)}
+// Format angka saat diketik, dengan titik sebagai pemisah ribuan.
+['bank','cash','receivable','debt'].forEach(id=>{
+ const input=$(id);
+ input.addEventListener('input',()=>{const start=input.selectionStart, before=input.value.slice(0,start);const digitsBefore=before.replace(/[^\d]/g,'').length;input.value=formatInput(input.value);let pos=0,count=0;while(pos<input.value.length&&count<digitsBefore){if(/\d/.test(input.value[pos]))count++;pos++;}input.setSelectionRange(pos,pos);});
+});
+// Tombol +/- mengubah nominal sebesar Rp1.000 setiap sentuhan.
+document.querySelectorAll('.stepper button').forEach(btn=>btn.addEventListener('click',()=>{const input=$(btn.dataset.target);const next=Math.max(0,parse(input.value)+Number(btn.dataset.step));input.value=formatInput(next);input.dispatchEvent(new Event('input',{bubbles:true}));}));
+// Musik otomatis diputar dan mengulang terus saat aplikasi dibuka.
+// Tombol Off menghentikan musik untuk sesi ini; saat aplikasi dibuka lagi musik aktif kembali.
+const music=$('appMusic');
+function setMusicPlaying(playing){$('musicPlay').classList.toggle('active',playing);}
+async function startMusic(showMessage=false){
+ try{await music.play();setMusicPlaying(true);if(showMessage)toast('Musik diputar');}
+ catch(e){setMusicPlaying(false);if(showMessage)toast('Tekan Play untuk memulai musik');}
+}
+$('musicPlay').onclick=()=>startMusic(true);
+$('musicOff').onclick=()=>{music.pause();music.currentTime=0;setMusicPlaying(false);toast('Musik dimatikan')};
+music.addEventListener('play',()=>setMusicPlaying(true));
+music.addEventListener('pause',()=>setMusicPlaying(false));
+// Coba mulai otomatis setiap kali aplikasi dibuka.
+startMusic(false);
 $('saveToday').onclick=saveToday;$('backup').onclick=$('export').onclick=backup;
 $('import').onclick=()=>$('file').click();$('file').onchange=e=>e.target.files[0]&&restore(e.target.files[0]);
 $('allHistory').onclick=()=>$('historyDialog').showModal();$('closeHistory').onclick=()=>$('historyDialog').close();$('monthSelect').onchange=renderMonthly;

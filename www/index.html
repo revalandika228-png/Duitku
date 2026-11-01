@@ -4,11 +4,11 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f6faf7"><meta name="description" content="Catatan kondisi keuangan harian">
 <link rel="manifest" href="manifest.json"><link rel="icon" href="wallet.svg"><link rel="stylesheet" href="style.css">
-<title>Duite Gatut Wijayanto</title>
+<title>Duitku</title>
 </head>
 <body>
 <header>
-  <div class="brand"><img src="duitku-custom-icon.png" alt="Logo Duite Gatut Wijayanto"><div><h1>Duite Gatut Wijayanto</h1><p>Pantau uangmu setiap hari</p></div></div>
+  <div class="brand"><img src="wallet.svg" alt="Ikon dompet"><div><h1>Duitku</h1><p>Pantau uangmu setiap hari</p></div></div>
   <button class="round" id="backup" aria-label="Backup">↥</button>
 </header>
 <main>
@@ -22,10 +22,10 @@
   <section class="section">
     <div class="section-title"><div><h2>Posisi uang hari ini</h2><p>Isi jumlah terbaru, tidak perlu catat transaksi satu-satu.</p></div></div>
     <div class="amount-grid">
-      <label class="money-card"><span class="money-icon bank">▤</span><span class="field-title">Uang di bank</span><span class="currency">Rp</span><input id="bank" inputmode="numeric" placeholder="0"></label>
-      <label class="money-card"><span class="money-icon cash">▣</span><span class="field-title">Uang di dompet</span><span class="currency">Rp</span><input id="cash" inputmode="numeric" placeholder="0"></label>
-      <label class="money-card"><span class="money-icon receivable">↗</span><span class="field-title">Piutang <small>Orang berutang ke kamu</small></span><span class="currency">Rp</span><input id="receivable" inputmode="numeric" placeholder="0"></label>
-      <label class="money-card"><span class="money-icon debt">↙</span><span class="field-title">Utang <small>Kamu harus membayar</small></span><span class="currency">Rp</span><input id="debt" inputmode="numeric" placeholder="0"></label>
+      <label class="money-card"><span class="money-icon bank">▤</span><span class="field-title">Uang di bank</span><span class="currency">Rp</span><div class="input-control"><input id="bank" type="text" inputmode="numeric" placeholder="0"><div class="stepper"><button type="button" data-target="bank" data-step="-1000" aria-label="Kurangi uang bank">−</button><button type="button" data-target="bank" data-step="1000" aria-label="Tambah uang bank">+</button></div></div></label>
+      <label class="money-card"><span class="money-icon cash">▣</span><span class="field-title">Uang di dompet</span><span class="currency">Rp</span><div class="input-control"><input id="cash" type="text" inputmode="numeric" placeholder="0"><div class="stepper"><button type="button" data-target="cash" data-step="-1000" aria-label="Kurangi uang dompet">−</button><button type="button" data-target="cash" data-step="1000" aria-label="Tambah uang dompet">+</button></div></div></label>
+      <label class="money-card"><span class="money-icon receivable">↗</span><span class="field-title">Piutang <small>Orang berutang ke kamu</small></span><span class="currency">Rp</span><div class="input-control"><input id="receivable" type="text" inputmode="numeric" placeholder="0"><div class="stepper"><button type="button" data-target="receivable" data-step="-1000" aria-label="Kurangi piutang">−</button><button type="button" data-target="receivable" data-step="1000" aria-label="Tambah piutang">+</button></div></div></label>
+      <label class="money-card"><span class="money-icon debt">↙</span><span class="field-title">Utang <small>Kamu harus membayar</small></span><span class="currency">Rp</span><div class="input-control"><input id="debt" type="text" inputmode="numeric" placeholder="0"><div class="stepper"><button type="button" data-target="debt" data-step="-1000" aria-label="Kurangi utang">−</button><button type="button" data-target="debt" data-step="1000" aria-label="Tambah utang">+</button></div></div></label>
     </div>
     <div class="formula">Bank + Dompet + Piutang − Utang = Kekayaan bersih</div>
     <button class="save-btn" id="saveToday">Simpan posisi hari ini</button>
@@ -63,7 +63,9 @@
   <section class="tools">
     <button id="export">Ekspor backup</button><button id="import">Pulihkan backup</button><input id="file" type="file" accept="application/json" hidden>
   </section>
+  <section class="music-panel"><div><strong>Musik</strong><small>Putar musik saat menggunakan aplikasi</small></div><div class="music-actions"><button type="button" id="musicPlay">▶ Play</button><button type="button" id="musicOff">■ Off</button></div><audio id="appMusic" src="music.mp3" loop autoplay playsinline preload="auto"></audio></section>
   <p class="privacy">🔒 Data Duitku hanya tersimpan di perangkat ini. Ekspor backup secara berkala agar catatan aman jika HP berganti atau aplikasi dihapus.</p>
+  <footer class="creator-watermark">Dibuat oleh <strong>Gatut Wijayanto</strong><br><a href="tel:082139624485">082139624485</a> <span>·</span> <a href="mailto:gatut.wijayanto@gmail.com">gatut.wijayanto@gmail.com</a></footer>
 </main>
 <div class="toast" id="toast"></div>
 <dialog id="historyDialog"><div class="dialog-head"><h2>Semua riwayat</h2><button class="round" id="closeHistory">×</button></div><div id="fullHistory"></div></dialog>
