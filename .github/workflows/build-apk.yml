@@ -19,6 +19,17 @@ jobs:
         run: npm install
       - name: Create Android project
         run: npx cap add android
+      - name: Allow audio autoplay in Android WebView
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/src/main/java/id/duitku/personal/MainActivity.java')
+          s = p.read_text()
+          marker = 'super.onCreate(savedInstanceState);'
+          addition = marker + '\n        getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);'
+          if marker in s and 'setMediaPlaybackRequiresUserGesture' not in s:
+              p.write_text(s.replace(marker, addition, 1))
+          PY
       - name: Sync web app
         run: npx cap sync android
       - name: Build APK
