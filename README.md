@@ -1,4 +1,4 @@
-# Duite Gatut Wijayanto — Daily Money Tracker
+# Duitku — Daily Money Tracker
 
 Aplikasi catatan posisi keuangan harian, bukan pencatat transaksi satu per satu.
 
@@ -28,5 +28,16 @@ Satu catatan per tanggal. Menyimpan ulang pada tanggal yang sama akan memperbaru
 ## Catatan
 APK debug untuk instalasi pribadi, bukan rilis Play Store.
 
-## Nama dan ikon custom
-Nama launcher dan judul aplikasi: Duite Gatut Wijayanto. Ikon launcher memakai gambar custom yang disediakan pengguna, di beberapa resolusi Android.
+
+## Fitur tambahan
+- Input nominal otomatis memakai titik pemisah ribuan (contoh 100000 menjadi 100.000).
+- Tombol + dan − mengubah nilai Rp1.000 setiap sentuhan.
+- Watermark pembuat aplikasi tampil di bagian bawah.
+- Pemutar musik memakai file `www/music.mp3`. Untuk mengaktifkan musik, unggah file MP3 milikmu dengan nama persis `music.mp3` ke folder `www` (sejajar dengan `index.html`), lalu build APK kembali. File musik belum disertakan karena menunggu file dari pengguna.
+
+### Musik aplikasi
+File musik bawaan pengguna berada di `www/music.mp3`. Tombol **Play** memutar lagu dan tombol **Off** menghentikannya. Untuk mengganti lagu, ganti file tersebut dengan MP3 lain dan beri nama `music.mp3`.
+
+
+### Musik otomatis
+Lagu `www/music.mp3` diputar otomatis dan loop saat aplikasi dibuka. Tombol Off menghentikan musik; saat aplikasi dibuka kembali, pemutaran otomatis dicoba lagi. Build Android mengizinkan autoplay pada WebView. Jika perangkat membatasi autoplay, tekan Play sekali.
