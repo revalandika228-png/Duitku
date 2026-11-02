@@ -60,7 +60,58 @@ function renderMonthly(){
  $('monthCount').textContent=items.length+' hari';
 }
 
-function backup(){const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='duitku-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href);toast('File backup dibuat')}
+async function backup(){
+ const filename='duite-backup-'+today()+'.json';
+ const content=JSON.stringify(db,null,2);
+ // Native Android: save JSON in app cache, then open Android share sheet.
+ const plugins=window.Capacitor&&window.Capacitor.Plugins;
+ const Filesystem=plugins&&plugins.Filesystem;
+ const Share=plugins&&plugins.Share;
+ if(Filesystem&&Share){
+  let saved;
+  try{
+   saved=await Filesystem.writeFile({
+    path:filename,
+    data:content,
+    directory:'CACHE',
+    encoding:'utf8'
+   });
+  }catch(err){
+   console.error('Native backup write failed:',err);
+   toast('Gagal menyiapkan backup. Coba lagi.');
+   return;
+  }
+  try{
+   await Share.share({
+    title:'Backup Duite',
+    text:'Simpan file backup keuangan Duite di Drive atau folder Files.',
+    files:[saved.uri],
+    dialogTitle:'Simpan backup Duite'
+   });
+   toast('Pilih Drive atau Files untuk menyimpan backup.');
+  }catch(err){
+   console.warn('Share dismissed or failed:',err);
+   toast('Menu berbagi ditutup. Backup belum disimpan ke lokasi pilihan.');
+  }
+  return;
+ }
+ // Browser fallback; delay URL cleanup to give Android time to start the download.
+ try{
+  const blob=new Blob([content],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},60000);
+  toast('Permintaan download backup dikirim.');
+ }catch(err){
+  console.error('Backup download failed:',err);
+  toast('Ekspor gagal. Coba lagi.');
+ }
+}
 function restore(file){const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x.snapshots)||x.snapshots.some(s=>!s.date||!['bank','cash','receivable','debt'].every(k=>Number.isFinite(Number(s[k])))))throw Error();db=x;localStorage.setItem(KEY,JSON.stringify(db));updateUI();toast('Backup berhasil dipulihkan')}catch(e){alert('File backup tidak valid')}};r.readAsText(file)}
 // Kalkulator penuh layar untuk mengisi saldo. Hasil hanya dihitung setelah tombol "=".
 const calcLabels={bank:'Uang di bank',cash:'Uang di dompet',receivable:'Piutang',debt:'Utang'};
