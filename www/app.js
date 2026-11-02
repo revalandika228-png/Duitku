@@ -62,32 +62,118 @@ function renderMonthly(){
 
 function backup(){const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='duitku-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href);toast('File backup dibuat')}
 function restore(file){const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x.snapshots)||x.snapshots.some(s=>!s.date||!['bank','cash','receivable','debt'].every(k=>Number.isFinite(Number(s[k])))))throw Error();db=x;localStorage.setItem(KEY,JSON.stringify(db));updateUI();toast('Backup berhasil dipulihkan')}catch(e){alert('File backup tidak valid')}};r.readAsText(file)}
-// Format angka saat diketik, dengan titik sebagai pemisah ribuan.
-['bank','cash','receivable','debt'].forEach(id=>{
- const input=$(id);
- input.addEventListener('input',()=>{const start=input.selectionStart, before=input.value.slice(0,start);const digitsBefore=before.replace(/[^\d]/g,'').length;input.value=formatInput(input.value);let pos=0,count=0;while(pos<input.value.length&&count<digitsBefore){if(/\d/.test(input.value[pos]))count++;pos++;}input.setSelectionRange(pos,pos);});
+// Kalkulator penuh layar untuk mengisi saldo. Hasil hanya dihitung setelah tombol "=".
+const calcLabels={bank:'Uang di bank',cash:'Uang di dompet',receivable:'Piutang',debt:'Utang'};
+let activeMoneyField=null,calcExpression='0',calcResult=null,calcHasResult=false;
+const calcOperators=['+','-','×','÷'];
+function formatExpression(expr){
+ return expr.replace(/\d+/g, n=>Number(n).toLocaleString('id-ID'))
+            .replace(/\*/g,'×').replace(/\//g,'÷').replace(/-/g,'−');
+}
+function evaluateExpression(expr){
+ const tokens=expr.match(/\d+|[+\-×÷]/g);
+ if(!tokens||tokens.join('')!==expr)throw new Error('Periksa hitungan');
+ const nums=[],ops=[];
+ for(const token of tokens){
+  if(/^\d+$/.test(token))nums.push(Number(token));
+  else ops.push(token);
+ }
+ if(nums.length!==ops.length+1)throw new Error('Operasi belum lengkap');
+ for(let i=0;i<ops.length;){
+  if(ops[i]==='×'||ops[i]==='÷'){
+   const v=ops[i]==='×'?nums[i]*nums[i+1]:nums[i]/nums[i+1];
+   if(!Number.isFinite(v))throw new Error('Tidak bisa membagi dengan nol');
+   nums.splice(i,2, v);ops.splice(i,1);
+  }else i++;
+ }
+ let result=nums[0];
+ for(let i=0;i<ops.length;i++)result=ops[i]==='+'?result+nums[i+1]:result-nums[i+1];
+ if(!Number.isFinite(result))throw new Error('Hasil tidak valid');
+ return Math.round(result);
+}
+function renderCalculator(){
+ $('calcExpression').textContent=formatExpression(calcExpression);
+ $('calcAnswer').textContent=calcHasResult?money(calcResult):'—';
+ $('calcHint').textContent=calcHasResult?'Hasil perhitungan':'Hasil muncul setelah menekan =';
+}
+function openMoneyCalculator(fieldId){
+ activeMoneyField=$(fieldId);
+ calcExpression=String(parse(activeMoneyField.value));
+ calcResult=null;calcHasResult=false;
+ $('calcFieldTitle').textContent=calcLabels[fieldId];
+ $('calcHint').textContent='Masukkan angka dan operasi';
+ renderCalculator();
+ $('moneyCalculator').classList.add('visible');
+ $('moneyCalculator').setAttribute('aria-hidden','false');
+ document.body.classList.add('calculator-open');
+}
+function closeMoneyCalculator(){
+ $('moneyCalculator').classList.remove('visible');
+ $('moneyCalculator').setAttribute('aria-hidden','true');
+ document.body.classList.remove('calculator-open');
+}
+function pressCalc(key){
+ if(key==='C'){
+  calcExpression='0';calcResult=null;calcHasResult=false;
+  renderCalculator();return;
+ }
+ if(key==='⌫'){
+  calcExpression=calcExpression.length>1?calcExpression.slice(0,-1):'0';
+  calcResult=null;calcHasResult=false;renderCalculator();return;
+ }
+ if(key==='='){
+  try{
+   calcResult=evaluateExpression(calcExpression);
+   calcHasResult=true;
+   $('calcHint').textContent='Tekan ✓ untuk menggunakan hasil ini';
+   renderCalculator();
+  }catch(err){
+   calcHasResult=false;calcResult=null;
+   $('calcAnswer').textContent='—';$('calcHint').textContent=err.message;
+  }
+  return;
+ }
+ if(calcOperators.includes(key)){
+  const op=key==='−'?'-':key;
+  if(calcHasResult){calcExpression=String(calcResult);calcHasResult=false;calcResult=null;}
+  if(calcOperators.includes(calcExpression.slice(-1)))calcExpression=calcExpression.slice(0,-1)+op;
+  else calcExpression+=op;
+  renderCalculator();return;
+ }
+ if(calcHasResult){calcExpression='';calcHasResult=false;calcResult=null;}
+ if(calcExpression==='0')calcExpression=key;
+ else calcExpression+=key;
+ renderCalculator();
+}
+function acceptCalcResult(){
+ if(!activeMoneyField)return;
+ if(!calcHasResult){$('calcHint').textContent='Tekan = terlebih dahulu';return;}
+ if(calcResult<0){$('calcHint').textContent='Jumlah akhir tidak boleh negatif';return;}
+ activeMoneyField.value=formatInput(calcResult);
+ closeMoneyCalculator();
+ toast(calcLabels[activeMoneyField.id]+' diperbarui. Tekan Simpan posisi hari ini.');
+}
+document.querySelectorAll('.money-card').forEach(card=>{
+ const input=card.querySelector('input');
+ input.readOnly=true;input.setAttribute('inputmode','none');
+ card.addEventListener('click',()=>openMoneyCalculator(input.id));
 });
-// Tombol + dan − berfungsi sebagai kalkulator per kolom.
-// Contoh: ketik 7.000, tekan +, ketik 10.000, tekan + lagi => 17.000.
-const calculations={};
-document.querySelectorAll('.stepper button').forEach(btn=>btn.addEventListener('click',()=>{
- const id=btn.dataset.target,input=$(id),hint=$('calc-'+id),op=btn.dataset.op,current=parse(input.value);
- const pending=calculations[id];
- if(!pending){
-  if(!input.value.trim()){toast('Masukkan nominal terlebih dahulu');input.focus();return;}
-  calculations[id]={value:current,op};
-  hint.textContent=formatInput(current)+(op==='add'?' +':' −')+' …';
-  input.value='';input.focus();return;
- }
- if(!input.value.trim()){
-  // Jika operator ditekan lagi sebelum angka kedua diisi, izinkan mengganti operator.
-  pending.op=op;hint.textContent=formatInput(pending.value)+(op==='add'?' +':' −')+' …';input.focus();return;
- }
- const result=op==='add'?pending.value+current:pending.value-current;
- input.value=formatInput(Math.max(0,result));
- delete calculations[id];hint.textContent='Hasil: '+formatInput(Math.max(0,result));
- input.dispatchEvent(new Event('change',{bubbles:true}));input.focus();
-}));
+document.querySelectorAll('[data-calc]').forEach(button=>{
+ button.addEventListener('click',()=>pressCalc(button.dataset.calc));
+});
+$('calcConfirm').onclick=acceptCalcResult;
+$('calcDismiss').onclick=closeMoneyCalculator;
+document.addEventListener('keydown',e=>{
+ if(!$('moneyCalculator').classList.contains('visible'))return;
+ if(/^\d$/.test(e.key))pressCalc(e.key);
+ else if(e.key==='Enter'||e.key==='='){e.preventDefault();pressCalc('=');}
+ else if(e.key==='Escape')closeMoneyCalculator();
+ else if(e.key==='Backspace')pressCalc('⌫');
+ else if(e.key==='+')pressCalc('+');
+ else if(e.key==='-')pressCalc('−');
+ else if(e.key==='*')pressCalc('×');
+ else if(e.key==='/')pressCalc('÷');
+});
 // Musik otomatis diputar dan mengulang terus saat aplikasi dibuka.
 // Tombol Off menghentikan musik untuk sesi ini; saat aplikasi dibuka lagi musik aktif kembali.
 const music=$('appMusic');

@@ -20,12 +20,12 @@
   </section>
 
   <section class="section">
-    <div class="section-title"><div><h2>Posisi uang hari ini</h2><p>Isi jumlah terbaru, tidak perlu catat transaksi satu-satu.</p></div></div>
+    <div class="section-title"><div><h2>Posisi uang hari ini</h2><p>Ketuk kartu untuk membuka kalkulator layar penuh.</p></div></div>
     <div class="amount-grid">
-      <label class="money-card"><span class="money-icon bank">▤</span><span class="field-title">Uang di bank</span><span class="currency">Rp</span><div class="input-control"><input id="bank" type="text" inputmode="numeric" placeholder="0"><div class="stepper"><button type="button" data-target="bank" data-op="subtract" aria-label="Kurangi uang bank">−</button><button type="button" data-target="bank" data-op="add" aria-label="Tambah uang bank">+</button></div></div><small class="calc-hint" id="calc-bank"></small></label>
-      <label class="money-card"><span class="money-icon cash">▣</span><span class="field-title">Uang di dompet</span><span class="currency">Rp</span><div class="input-control"><input id="cash" type="text" inputmode="numeric" placeholder="0"><div class="stepper"><button type="button" data-target="cash" data-op="subtract" aria-label="Kurangi uang dompet">−</button><button type="button" data-target="cash" data-op="add" aria-label="Tambah uang dompet">+</button></div></div><small class="calc-hint" id="calc-cash"></small></label>
-      <label class="money-card"><span class="money-icon receivable">↗</span><span class="field-title">Piutang <small>Orang berutang ke kamu</small></span><span class="currency">Rp</span><div class="input-control"><input id="receivable" type="text" inputmode="numeric" placeholder="0"><div class="stepper"><button type="button" data-target="receivable" data-op="subtract" aria-label="Kurangi piutang">−</button><button type="button" data-target="receivable" data-op="add" aria-label="Tambah piutang">+</button></div></div><small class="calc-hint" id="calc-receivable"></small></label>
-      <label class="money-card"><span class="money-icon debt">↙</span><span class="field-title">Utang <small>Kamu harus membayar</small></span><span class="currency">Rp</span><div class="input-control"><input id="debt" type="text" inputmode="numeric" placeholder="0"><div class="stepper"><button type="button" data-target="debt" data-op="subtract" aria-label="Kurangi utang">−</button><button type="button" data-target="debt" data-op="add" aria-label="Tambah utang">+</button></div></div><small class="calc-hint" id="calc-debt"></small></label>
+      <label class="money-card"><span class="money-icon bank">▤</span><span class="field-title">Uang di bank</span><span class="currency">Rp</span><input id="bank" type="text" inputmode="none" placeholder="0" readonly></label>
+      <label class="money-card"><span class="money-icon cash">▣</span><span class="field-title">Uang di dompet</span><span class="currency">Rp</span><input id="cash" type="text" inputmode="none" placeholder="0" readonly></label>
+      <label class="money-card"><span class="money-icon receivable">↗</span><span class="field-title">Piutang <small>Orang berutang ke kamu</small></span><span class="currency">Rp</span><input id="receivable" type="text" inputmode="none" placeholder="0" readonly></label>
+      <label class="money-card"><span class="money-icon debt">↙</span><span class="field-title">Utang <small>Kamu harus membayar</small></span><span class="currency">Rp</span><input id="debt" type="text" inputmode="none" placeholder="0" readonly></label>
     </div>
     <div class="formula">Bank + Dompet + Piutang − Utang = Kekayaan bersih</div>
     <button class="save-btn" id="saveToday">Simpan posisi hari ini</button>
@@ -67,6 +67,39 @@
   <p class="privacy">🔒 Data Duitku hanya tersimpan di perangkat ini. Ekspor backup secara berkala agar catatan aman jika HP berganti atau aplikasi dihapus.</p>
   <footer class="creator-watermark">Dibuat oleh <strong>Gatut Wijayanto</strong><br><a href="tel:082139624485">082139624485</a> <span>·</span> <a href="mailto:gatut.wijayanto@gmail.com">gatut.wijayanto@gmail.com</a></footer>
 </main>
+<section class="money-calculator" id="moneyCalculator" aria-hidden="true">
+  <div class="calculator-header">
+    <button type="button" class="calc-confirm" id="calcConfirm" aria-label="Gunakan hasil">✓</button>
+    <div class="calc-heading"><strong id="calcFieldTitle">Masukkan jumlah</strong><span>Hitung dulu, lalu tekan centang</span></div>
+    <button type="button" class="calc-dismiss" id="calcDismiss" aria-label="Tutup">×</button>
+  </div>
+  <div class="calculator-display">
+    <div class="calc-expression" id="calcExpression">0</div>
+    <div class="calc-answer" id="calcAnswer">—</div>
+    <div class="calc-hint" id="calcHint">Hasil muncul setelah menekan =</div>
+  </div>
+  <div class="calculator-keys">
+    <button type="button" class="calc-key calc-function" data-calc="C">C</button>
+    <button type="button" class="calc-key calc-function" data-calc="÷">÷</button>
+    <button type="button" class="calc-key calc-function" data-calc="×">×</button>
+    <button type="button" class="calc-key calc-function" data-calc="⌫">⌫</button>
+    <button type="button" class="calc-key" data-calc="7">7</button>
+    <button type="button" class="calc-key" data-calc="8">8</button>
+    <button type="button" class="calc-key" data-calc="9">9</button>
+    <button type="button" class="calc-key calc-operator" data-calc="−">−</button>
+    <button type="button" class="calc-key" data-calc="4">4</button>
+    <button type="button" class="calc-key" data-calc="5">5</button>
+    <button type="button" class="calc-key" data-calc="6">6</button>
+    <button type="button" class="calc-key calc-operator" data-calc="+">+</button>
+    <button type="button" class="calc-key" data-calc="1">1</button>
+    <button type="button" class="calc-key" data-calc="2">2</button>
+    <button type="button" class="calc-key" data-calc="3">3</button>
+    <button type="button" class="calc-key calc-equals" data-calc="=">=</button>
+    <button type="button" class="calc-key calc-zero" data-calc="0">0</button>
+    <button type="button" class="calc-key" data-calc="000">000</button>
+    <button type="button" class="calc-key" data-calc="00">00</button>
+  </div>
+</section>
 <div class="toast" id="toast"></div>
 <dialog id="historyDialog"><div class="dialog-head"><h2>Semua riwayat</h2><button class="round" id="closeHistory">×</button></div><div id="fullHistory"></div></dialog>
 <script src="app.js"></script>
